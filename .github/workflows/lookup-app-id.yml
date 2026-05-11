@@ -1,0 +1,61 @@
+name: Lookup app_id (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package id to look up (default: this app's id)"
+        required: false
+        default: "cloud.lazycat.app.supersplat"
+
+permissions:
+  contents: read
+
+jobs:
+  lookup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login + scan dev-center app list
+        env:
+          LAZYCAT_USERNAME: ${{ secrets.LAZYCAT_USERNAME }}
+          LAZYCAT_PASSWORD: ${{ secrets.LAZYCAT_PASSWORD }}
+          TARGET_PKG: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          TOKEN=$(curl -sS -X POST \
+            -d "username=${LAZYCAT_USERNAME}&password=${LAZYCAT_PASSWORD}" \
+            https://account.lazycat.cloud/api/login/signin \
+            | jq -r '.data.token')
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "::error::login failed"; exit 1
+          fi
+          echo "Logged in. Scanning paginated app/list..."
+          page=1
+          while :; do
+            resp=$(curl -sS \
+              -H "Cookie: userToken=${TOKEN}" \
+              -H "X-User-Token: ${TOKEN}" \
+              "https://appstore.api.lazycat.cloud/api/v3/developer/app/list?page=${page}&size=20")
+            items=$(jq -c '.data.items // .data // []' <<<"$resp")
+            count=$(jq 'length' <<<"$items")
+            echo "page $page: $count items"
+            jq -c '.[] | {id, package, status, name}' <<<"$items"
+            hit=$(jq -r --arg p "$TARGET_PKG" '.[] | select(.package==$p) | .id // empty' <<<"$items" | head -1)
+            if [ -n "$hit" ]; then
+              echo "::notice::FOUND ${TARGET_PKG} app_id=${hit}"
+              echo "## Lookup result" >> "$GITHUB_STEP_SUMMARY"
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "**package**: \`${TARGET_PKG}\`" >> "$GITHUB_STEP_SUMMARY"
+              echo "**app_id**: \`${hit}\`" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            if [ "$count" -lt 20 ]; then
+              echo "::warning::package ${TARGET_PKG} not found after $page page(s)"
+              exit 1
+            fi
+            page=$((page + 1))
+            if [ "$page" -gt 50 ]; then
+              echo "::error::scan abort at page $page"
+              exit 1
+            fi
+          done
