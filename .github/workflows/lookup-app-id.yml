@@ -29,33 +29,53 @@ jobs:
           if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
             echo "::error::login failed"; exit 1
           fi
-          echo "Logged in. Scanning paginated app/list..."
-          page=1
-          while :; do
-            resp=$(curl -sS \
+          echo "Logged in. Probing app/list endpoint shape..."
+          # First do a raw probe with the exact query the skill documents
+          raw=$(curl -sS \
+            -H "Cookie: userToken=${TOKEN}" \
+            -H "X-User-Token: ${TOKEN}" \
+            "https://appstore.api.lazycat.cloud/api/v3/developer/app/list?page=1&size=10")
+          echo "::group::raw page 1 response (truncated)"
+          echo "$raw" | head -c 4000
+          echo
+          echo "::endgroup::"
+          # Print top-level keys + .data shape
+          echo "top keys: $(jq -r 'keys' <<<"$raw")"
+          echo ".data shape: $(jq -r '.data | if type=="object" then keys else type end' <<<"$raw")"
+          echo ".data length (if array): $(jq -r '.data | if type=="array" then length else "n/a" end' <<<"$raw")"
+          # Try alternative endpoints
+          for q in \
+            "page=1&size=20" \
+            "page=1&size=50" \
+            "pageNum=1&pageSize=50" \
+            "" ; do
+            r=$(curl -sS \
               -H "Cookie: userToken=${TOKEN}" \
               -H "X-User-Token: ${TOKEN}" \
-              "https://appstore.api.lazycat.cloud/api/v3/developer/app/list?page=${page}&size=20")
-            items=$(jq -c '.data.items // .data // []' <<<"$resp")
-            count=$(jq 'length' <<<"$items")
-            echo "page $page: $count items"
-            jq -c '.[] | {id, package, status, name}' <<<"$items"
-            hit=$(jq -r --arg p "$TARGET_PKG" '.[] | select(.package==$p) | .id // empty' <<<"$items" | head -1)
-            if [ -n "$hit" ]; then
-              echo "::notice::FOUND ${TARGET_PKG} app_id=${hit}"
-              echo "## Lookup result" >> "$GITHUB_STEP_SUMMARY"
-              echo "" >> "$GITHUB_STEP_SUMMARY"
-              echo "**package**: \`${TARGET_PKG}\`" >> "$GITHUB_STEP_SUMMARY"
-              echo "**app_id**: \`${hit}\`" >> "$GITHUB_STEP_SUMMARY"
-              exit 0
-            fi
-            if [ "$count" -lt 20 ]; then
-              echo "::warning::package ${TARGET_PKG} not found after $page page(s)"
-              exit 1
-            fi
-            page=$((page + 1))
-            if [ "$page" -gt 50 ]; then
-              echo "::error::scan abort at page $page"
-              exit 1
+              "https://appstore.api.lazycat.cloud/api/v3/developer/app/list?${q}")
+            n=$(jq '.data | if type=="object" and has("items") then .items|length elif type=="array" then length else 0 end' <<<"$r")
+            echo "query [${q}]: ${n} items"
+            if [ "$n" -gt 0 ]; then
+              items=$(jq -c '.data | if type=="object" and has("items") then .items else . end' <<<"$r")
+              echo "$items" | jq -c '.[] | {id, package, status, name}'
+              hit=$(jq -r --arg p "$TARGET_PKG" '.[] | select(.package==$p) | .id // empty' <<<"$items" | head -1)
+              if [ -n "$hit" ]; then
+                echo "::notice::FOUND ${TARGET_PKG} app_id=${hit}"
+                echo "**app_id**: \`${hit}\`" >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
             fi
           done
+          # Try app/check/exist endpoint
+          echo "---"
+          echo "Trying app/check/exist..."
+          chk=$(curl -sS \
+            -H "Cookie: userToken=${TOKEN}" \
+            -H "X-User-Token: ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"package\":\"${TARGET_PKG}\"}" \
+            "https://appstore.api.lazycat.cloud/api/v3/developer/app/check/exist")
+          echo "check/exist: $chk"
+          echo "::warning::no items found"
+          exit 1
