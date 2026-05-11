@@ -1,0 +1,60 @@
+source: https://github.com/playcanvas/supersplat
+source_author: playcanvas
+is_original: false
+keywords: 3d,gaussian-splat,playcanvas,editor,ply,splat,webgl,3d-reconstruction
+
+support_pc: true
+support_mobile: false
+
+screenshots:
+  pc:
+    - lazycat/screenshots/01-editor.png
+    - lazycat/screenshots/02-selection.png
+    - lazycat/screenshots/03-export.png
+  mobile: []
+
+description:
+  zh-CN: |
+    SuperSplat 是 PlayCanvas 出品的开源、浏览器原生 3D 高斯泼溅 (Gaussian
+    Splat) 编辑器 —— 把 .ply / .splat / .ksplat 拖到浏览器画布上就能
+    旋转、选区编辑、修剪离群点、编辑球谐 (SH) 系数、导出。所有处理都
+    在本地浏览器里完成，服务端不存数据。
+
+    特性
+    - 浏览器原生，WebGL 渲染，跨平台无需安装
+    - 支持 .ply / .splat / .ksplat 格式
+    - 盒选 / 球选 / 多边形选区编辑
+    - 离群点删除与边缘修剪
+    - 球谐函数 (SH) 编辑
+    - 模型动画时间轴
+    - 一键发布到 PlayCanvas 帐户（可选）
+
+    资源占用
+    - 服务端仅 nginx + 静态文件，几乎不占资源
+    - 渲染压力在浏览器一侧，推荐桌面浏览器 + 独立 GPU
+
+    上游项目（MIT）：https://github.com/playcanvas/supersplat
+    本仓库（懒猫包装）：https://github.com/microlazy-apps/lazy-supersplat
+  en: |
+    SuperSplat is PlayCanvas's open-source, browser-native 3D Gaussian Splat
+    editor. Drop a .ply / .splat / .ksplat onto the canvas and you can
+    rotate, select, trim outliers, edit spherical-harmonics coefficients,
+    and export — everything happens in your browser, the server stores
+    nothing.
+
+    Features
+    - Browser-native, WebGL rendering, no install
+    - Imports .ply / .splat / .ksplat
+    - Box / sphere / polygon selection editing
+    - Outlier removal and edge trimming
+    - Spherical harmonics (SH) editing
+    - Animation timeline
+    - One-click publish to a PlayCanvas account (optional)
+
+    Resources
+    - Server side is just nginx + static files; tiny footprint
+    - All rendering happens in the browser — a desktop browser with a
+      discrete GPU is recommended
+
+    Upstream project (MIT): https://github.com/playcanvas/supersplat
+    This wrapper repo: https://github.com/microlazy-apps/lazy-supersplat

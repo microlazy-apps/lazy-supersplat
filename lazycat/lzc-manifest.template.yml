@@ -1,0 +1,23 @@
+application:
+  subdomain: supersplat
+  upstreams:
+    - location: /
+      backend: http://main:80
+  public_path:
+    - /
+  health_check:
+    test_url: http://main:80/health
+    timeout: 10s
+    start_period: 30s
+
+services:
+  main:
+    image: ${LAZYCAT_IMAGE}
+    environment:
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

@@ -1,0 +1,88 @@
+package: cloud.lazycat.app.supersplat
+version: ${VERSION}
+name: SuperSplat
+description: 浏览器内的 3D 高斯泼溅编辑器 (3D Gaussian Splat Editor)
+author: PlayCanvas
+license: MIT
+homepage: https://github.com/microlazy-apps/lazy-supersplat
+
+unsupported_platforms:
+  - ios
+  - android
+
+locales:
+  zh-CN:
+    name: SuperSplat
+    description: 自托管 SuperSplat —— PlayCanvas 出品的浏览器原生 3D 高斯泼溅 (Gaussian Splat) 编辑器，可查看、编辑、优化、发布 .ply / .splat / .ksplat。
+    usage: |
+      ## 使用
+
+      装好后访问 `https://supersplat.<your-box>.heiyu.space` —— 整个编辑器
+      就在浏览器里跑（WebGL + PlayCanvas 引擎），不需要本地安装。
+
+      把 `.ply` / `.splat` / `.ksplat` 文件拖到画布即可开始编辑：
+
+      - 旋转 / 平移 / 缩放
+      - 选区编辑（盒选 / 球选 / 多边形选）
+      - 删除离群点、修剪边缘
+      - 球谐函数 (SH) 编辑
+      - 导出 / 发布到 PlayCanvas 帐户（可选）
+
+      ## 资源占用
+
+      - 服务端只是个 nginx + 静态文件，几乎不占资源
+      - 真正吃 GPU/内存的是你的浏览器 —— 推荐桌面浏览器 + 独显
+      - 大模型（>2GB splat）建议浏览器开启 `--js-flags=--max-old-space-size=8192`
+
+      ## 数据
+
+      所有处理都在浏览器本地完成，**服务端不存任何用户数据**。
+      上传 / 编辑 / 导出全部经过本地的内存与磁盘。
+
+      ## 上游 / 重打包说明
+
+      上游项目（MIT）：https://github.com/playcanvas/supersplat
+      本仓库（懒猫包装）：https://github.com/microlazy-apps/lazy-supersplat
+
+      本仓库只做镜像打包 —— 加一个 Dockerfile + nginx.conf 把上游
+      `dist/` 输出托管到 lazycat 子域名，不修改 SuperSplat 源码。
+  en:
+    name: SuperSplat
+    description: Self-hosted SuperSplat — PlayCanvas's browser-native 3D Gaussian Splat editor for viewing, editing, optimizing, and publishing .ply / .splat / .ksplat assets.
+    usage: |
+      ## Usage
+
+      Open `https://supersplat.<your-box>.heiyu.space` in any modern desktop
+      browser. The whole editor runs client-side on WebGL via the PlayCanvas
+      engine — nothing to install locally.
+
+      Drag a `.ply` / `.splat` / `.ksplat` file onto the canvas:
+
+      - Rotate / translate / scale
+      - Selection-based editing (box / sphere / polygon)
+      - Trim outliers, clean edges
+      - Spherical harmonics (SH) editing
+      - Export or publish back to your PlayCanvas account (optional)
+
+      ## Resources
+
+      - The server is just nginx + static files; near-zero footprint.
+      - The heavy lifting (GPU + RAM) happens in your browser. A desktop
+        browser with a discrete GPU is recommended.
+      - For very large splats (>2 GB) consider launching Chrome with
+        `--js-flags=--max-old-space-size=8192`.
+
+      ## Data
+
+      All processing happens entirely in your browser. **No user data
+      reaches the server** — uploads, edits, and exports stay on your
+      machine.
+
+      ## Upstream / repackaging note
+
+      Upstream project (MIT): https://github.com/playcanvas/supersplat
+      This wrapper repo: https://github.com/microlazy-apps/lazy-supersplat
+
+      Image-only repackaging — we add a Dockerfile + nginx.conf to serve
+      upstream's `dist/` build under a lazycat subdomain. SuperSplat
+      source is unmodified.
