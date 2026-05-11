@@ -10,7 +10,6 @@ screenshots:
   pc:
     - lazycat/screenshots/01-editor.png
     - lazycat/screenshots/02-selection.png
-    - lazycat/screenshots/03-export.png
   mobile: []
 
 description:
